@@ -4,7 +4,7 @@ use std::{env, net::SocketAddr};
 async fn main() {
     println!("Starting up left-gang service");
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     let db = models::blank_db();
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
@@ -37,7 +37,7 @@ mod filters {
         token: String,
         db: Db,
     ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-        warp::path!("move" / "original")
+        warp::path!("api" / "move" / "original")
             .and(warp::get())
             .and(warp::any().map(move || token.clone()))
             .and(with_db(db))
@@ -48,7 +48,7 @@ mod filters {
         token: String,
         db: Db,
     ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-        warp::path!("move")
+        warp::path!("api" / "move")
             .and(warp::get())
             .and(warp::any().map(move || token.clone()))
             .and(with_db(db))
@@ -56,7 +56,7 @@ mod filters {
     }
 
     pub fn hello() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-        warp::path!("hello" / String).map(|name| format!("Hello, {}!", name))
+        warp::path!("api" / "hello" / String).map(|name| format!("Hello, {}!", name))
     }
 
     fn with_db(db: Db) -> impl Filter<Extract = (Db,), Error = std::convert::Infallible> + Clone {
