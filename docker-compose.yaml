@@ -1,0 +1,15 @@
+version: '3'
+services:
+  server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    networks:
+      - network
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+
+networks:
+  network:
