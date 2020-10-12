@@ -22,7 +22,7 @@ async fn main() {
     println!("Starting up left-gang service");
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    let db = models::blank_db_2();
+    let db = models::blank_db();
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
     let server = warp::serve(filters::movers(token.clone(), db.clone())).run(addr);
@@ -160,7 +160,7 @@ mod models {
         type Value = Db;
     }
 
-    pub fn blank_db_2() -> Db {
+    pub fn blank_db() -> Db {
         Arc::new(RwLock::new(Vec::new()))
     }
 
@@ -174,6 +174,7 @@ mod models {
 
 mod commands {
     use crate::models::{DbKey, User};
+    use crate::util::parse_channel_id;
     use serenity::client::Context;
     use serenity::framework::standard::macros::command;
     use serenity::framework::standard::CommandResult;
@@ -209,10 +210,15 @@ mod commands {
         println!("{:#?}", msg);
 
         let args: Vec<&str> = msg.content.split_whitespace().collect();
-        if args.len() < 3 {
-            msg.reply(ctx, "Requires two parameters").await?;
+        if args.len() < 4 {
+            msg.reply(ctx, "Requires three parameters").await?;
             return Ok(());
         }
+
+        let original_channel =
+            parse_channel_id(args[2]).expect("Unable to parse original channel string");
+
+        let new_channel = parse_channel_id(args[3]).expect("Unable to parse new channel string");
 
         {
             let data_write = ctx.data.write().await;
@@ -223,11 +229,20 @@ mod commands {
             let mut db = db_lock.write().await;
             db.push(User {
                 id: *msg.mentions.first().expect("oops").id.as_u64(),
-                original_channel: 340006336659980290,
-                new_channel: args[2].parse::<u64>().expect("oops"),
+                original_channel,
+                new_channel,
             })
         }
 
         Ok(())
+    }
+}
+
+mod util {
+    use std::num::ParseIntError;
+
+    pub fn parse_channel_id(str: &str) -> Result<u64, ParseIntError> {
+        str.parse::<u64>()
+            .or_else(|_| str.replace("<#", "").replace(">", "").parse())
     }
 }
