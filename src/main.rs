@@ -15,7 +15,7 @@ use crate::models::DbKey;
 use commands::*;
 
 #[group]
-#[commands(ping, log_data, add)]
+#[commands(ping, add)]
 struct General;
 
 struct DiscordHandler;

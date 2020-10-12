@@ -13,26 +13,8 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-async fn log_data(ctx: &Context, msg: &Message) -> CommandResult {
-    let thingy: Vec<u64> = {
-        let data_read = ctx.data.read().await;
-        let db_lock = data_read
-            .get::<DbKey>()
-            .expect("Expected a database reference in TypeMap")
-            .clone();
-        let db = db_lock.read().await;
-        db.iter().map(|it| it.new_channel).collect()
-    };
-
-    let new_channel = format!("The new channel will be <#{}>", thingy[0]);
-
-    msg.reply(ctx, new_channel).await?;
-    Ok(())
-}
-
-#[command]
 async fn add(ctx: &Context, msg: &Message) -> CommandResult {
-    println!("{:#?}", msg);
+    // println!("{:#?}", msg);
 
     let args: Vec<&str> = msg.content.split_whitespace().collect();
     if args.len() < 4 {
@@ -54,11 +36,18 @@ async fn add(ctx: &Context, msg: &Message) -> CommandResult {
             .expect("Expected a database reference in TypeMap")
             .clone();
         let mut db = db_lock.write().await;
-        db.push(User {
-            id,
-            original_channel,
-            new_channel,
-        })
+        let guild_string = &msg.guild_id.expect("I need this").to_string();
+        if !db.contains_key(&guild_string.clone()) {
+            db.insert(guild_string.clone(), Vec::new());
+        }
+
+        db.get_mut(guild_string)
+            .expect("No time for error handling")
+            .push(User {
+                id,
+                original_channel,
+                new_channel,
+            })
     }
 
     msg.reply(

@@ -3,12 +3,18 @@ use serde_json::json;
 use serenity::http::Http;
 use std::convert::Infallible;
 
-pub async fn move_users_to_original(token: String, db: Db) -> Result<impl warp::Reply, Infallible> {
+pub async fn move_users_to_original(
+    guild_id: String,
+    token: String,
+    db: Db,
+) -> Result<impl warp::Reply, Infallible> {
     let http = Http::new_with_token(&token);
     {
-        let vec = db.read().await;
+        let map = db.read().await;
 
-        for user in vec.iter() {
+        let guild_vec = map.get(&guild_id).expect("Just for now");
+
+        for user in guild_vec.iter() {
             let mut map = serde_json::Map::new();
             map.insert("channel_id".to_string(), json!(user.original_channel));
 
@@ -20,12 +26,20 @@ pub async fn move_users_to_original(token: String, db: Db) -> Result<impl warp::
     Ok(warp::reply::json(&"Moved two users"))
 }
 
-pub async fn move_users_to_group(token: String, db: Db) -> Result<impl warp::Reply, Infallible> {
+pub async fn move_users_to_group(
+    guild_id: String,
+    token: String,
+    db: Db,
+) -> Result<impl warp::Reply, Infallible> {
     let http = Http::new_with_token(&token);
     {
-        let vec = db.read().await;
+        let map = db.read().await;
 
-        for user in vec.iter() {
+        let guild_vec = map.get(&guild_id).expect("Just for now");
+
+        println!("{:#?}", guild_vec);
+
+        for user in guild_vec.iter() {
             let mut map = serde_json::Map::new();
             map.insert("channel_id".to_string(), json!(user.new_channel));
 

@@ -15,7 +15,7 @@ pub fn move_users_to_original(
     token: String,
     db: Db,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path!("api" / "move" / "original")
+    warp::path!("api" / "move" / String / "original")
         .and(warp::get())
         .and(warp::any().map(move || token.clone()))
         .and(with_db(db))
@@ -26,7 +26,7 @@ pub fn move_users_to_new(
     token: String,
     db: Db,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path!("api" / "move")
+    warp::path!("api" / "move" / String)
         .and(warp::get())
         .and(warp::any().map(move || token.clone()))
         .and(with_db(db))
