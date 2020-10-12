@@ -40,6 +40,8 @@ async fn add(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(());
     }
 
+    let id = *msg.mentions.first().expect("oops").id.as_u64();
+
     let original_channel =
         parse_channel_id(args[2]).expect("Unable to parse original channel string");
 
@@ -53,11 +55,17 @@ async fn add(ctx: &Context, msg: &Message) -> CommandResult {
             .clone();
         let mut db = db_lock.write().await;
         db.push(User {
-            id: *msg.mentions.first().expect("oops").id.as_u64(),
+            id,
             original_channel,
             new_channel,
         })
     }
+
+    msg.reply(
+        ctx,
+        format!("Added entry to move <@!{}> to <#{}>", id, new_channel),
+    )
+    .await?;
 
     Ok(())
 }
