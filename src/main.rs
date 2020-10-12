@@ -9,7 +9,7 @@ use crate::models::DbKey;
 use commands::*;
 
 #[group]
-#[commands(ping, log_data)]
+#[commands(ping, log_data, add)]
 struct General;
 
 struct DiscordHandler;
@@ -46,7 +46,7 @@ async fn main() {
     }
 
     if let Err(why) = client.start().await {
-        eprintln!("An error occured while running the client: {}", why)
+        eprintln!("An error occurred while running the client: {}", why)
     }
 
     match server_task.await {
@@ -161,18 +161,7 @@ mod models {
     }
 
     pub fn blank_db_2() -> Db {
-        let mut vec = Vec::new();
-        vec.push(User {
-            id: 73441680702840832,
-            original_channel: 340006336659980290,
-            new_channel: 633839420545433669,
-        });
-        vec.push(User {
-            id: 122751192307728387,
-            original_channel: 340006336659980290,
-            new_channel: 633839420545433669,
-        });
-        Arc::new(RwLock::new(vec))
+        Arc::new(RwLock::new(Vec::new()))
     }
 
     #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -184,7 +173,7 @@ mod models {
 }
 
 mod commands {
-    use crate::models::DbKey;
+    use crate::models::{DbKey, User};
     use serenity::client::Context;
     use serenity::framework::standard::macros::command;
     use serenity::framework::standard::CommandResult;
@@ -212,6 +201,33 @@ mod commands {
         let new_channel = format!("The new channel will be <#{}>", thingy[0]);
 
         msg.reply(ctx, new_channel).await?;
+        Ok(())
+    }
+
+    #[command]
+    async fn add(ctx: &Context, msg: &Message) -> CommandResult {
+        println!("{:#?}", msg);
+
+        let args: Vec<&str> = msg.content.split_whitespace().collect();
+        if args.len() < 3 {
+            msg.reply(ctx, "Requires two parameters").await?;
+            return Ok(());
+        }
+
+        {
+            let data_write = ctx.data.write().await;
+            let db_lock = data_write
+                .get::<DbKey>()
+                .expect("Expected a database reference in TypeMap")
+                .clone();
+            let mut db = db_lock.write().await;
+            db.push(User {
+                id: *msg.mentions.first().expect("oops").id.as_u64(),
+                original_channel: 340006336659980290,
+                new_channel: args[2].parse::<u64>().expect("oops"),
+            })
+        }
+
         Ok(())
     }
 }
