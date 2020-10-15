@@ -18,7 +18,7 @@ pub async fn move_users_to_original(
             let mut map = serde_json::Map::new();
             map.insert("channel_id".to_string(), json!(user.original_channel));
 
-            http.edit_member(340006336659980289, user.id, &map)
+            http.edit_member(guild_id.parse().expect("We need this"), user.id, &map)
                 .await
                 .expect("That shouldn't have happened")
         }
@@ -43,9 +43,13 @@ pub async fn move_users_to_group(
             let mut map = serde_json::Map::new();
             map.insert("channel_id".to_string(), json!(user.new_channel));
 
-            http.edit_member(340006336659980289, user.id, &map)
-                .await
-                .expect("That shouldn't have happened")
+            http.edit_member(
+                guild_id.parse::<u64>().expect("Crashy crashy"),
+                user.id,
+                &map,
+            )
+            .await
+            .expect("That shouldn't have happened")
         }
     }
 
