@@ -1,11 +1,19 @@
-FROM rust:1.47-slim
+FROM rust:1.47-slim as cargo-build
 
-WORKDIR /var/www/leftgang
+WORKDIR /usr/src/leftgang
+
 COPY . .
 
 RUN rustc --version
-RUN cargo install --path /var/www/leftgang
+RUN cargo build --release
+
+FROM debian:buster-slim
+
+WORKDIR /var/www/leftgang
+
+COPY --from=cargo-build /usr/src/leftgang/target/release/leftgang /var/www/leftgang
 
 EXPOSE 3000
 
-CMD ["leftgang"]
+RUN ls
+CMD ["/var/www/leftgang/leftgang"]
