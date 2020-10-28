@@ -11,5 +11,10 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 warp = "0.2.5"
 hyper = "0.13"
-tokio = {version = "0.2.22", features = ["full"]}
-serenity = { default-features = false, features = ["client", "gateway", "model", "rustls_backend", "framework", "standard_framework"], version = "0.9.0-rc.2"}
+tokio = { version = "0.2.22", features = ["full"] }
+sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-tokio", "macros", "postgres", "uuid" ] }
+dotenv = "0.15.0"
+log = "0.4.11"
+env_logger = "0.8.1"
+uuid = { version = "0.8.1", features = ["serde", "v4"] }
+serenity = { default-features = false, features = ["client", "gateway", "model", "rustls_backend", "framework", "standard_framework", "collector"], version = "0.9.0-rc.4" }
